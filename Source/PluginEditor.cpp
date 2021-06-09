@@ -237,8 +237,6 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
     
     g.drawImage(background, getLocalBounds().toFloat());
     
-//    auto responseArea = getLocalBounds();
-//    auto responseArea = getRenderArea();
     auto responseArea = getAnalysisArea();
     
     auto w = responseArea.getWidth();
@@ -418,10 +416,6 @@ void ResponseCurveComponent::resized()
 juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
 {
     auto bounds = getLocalBounds();
-    
-//    bounds.reduce(10, //JUCE_LIVE_CONSTANT(5),
-//                  8 //JUCE_LIVE_CONSTANT(5));
-//                  );
     
     bounds.removeFromTop(12);
     bounds.removeFromBottom(2);
