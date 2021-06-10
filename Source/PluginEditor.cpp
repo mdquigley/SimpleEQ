@@ -9,6 +9,10 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+auto color1 = juce::Colour(69u, 129u, 136u); //102u, 154u, 140u
+auto color2 = juce::Colour(153, 190u, 187u);
+auto color3 = juce::Colour(245u, 233u, 207u);
+auto color4 = juce::Colour(0u, 172u, 1u);
 
 void LookAndFeel::drawRotarySlider(juce::Graphics & g,
                                    int x,
@@ -26,10 +30,10 @@ void LookAndFeel::drawRotarySlider(juce::Graphics & g,
     
     auto enabled = slider.isEnabled();
     
-    g.setColour(enabled ? Colour(97u, 18u, 167u) : Colours::darkgrey );
+    g.setColour(enabled ? color2 : Colours::darkgrey );
     g.fillEllipse(bounds);
     
-    g.setColour(enabled ? Colour(255u, 154u, 1u) : Colours::grey );
+    g.setColour(enabled ? color1 : Colours::grey );
     g.drawEllipse(bounds, 1.f);
     
     if( auto* rswl = dynamic_cast<RotarySliderWithLabels*>(&slider))
@@ -60,10 +64,10 @@ void LookAndFeel::drawRotarySlider(juce::Graphics & g,
         r.setSize(strWidth + 4, rswl->getTextHeight() + 2);
         r.setCentre(bounds.getCentre());
         
-        g.setColour(enabled ? Colours::black : Colours::darkgrey);
+        g.setColour(enabled ? color3 : Colours::darkgrey);
         g.fillRect(r);
         
-        g.setColour(enabled ? Colours::white : Colours::lightgrey);
+        g.setColour(enabled ? color1 : Colours::lightgrey);
         g.drawFittedText(text, r.toNearestInt(), juce::Justification::centred, 1);
     }
 }
@@ -91,16 +95,20 @@ void LookAndFeel::drawToggleButton(juce::Graphics &g, juce::ToggleButton &toggle
         
         PathStrokeType pst(2.f, PathStrokeType::JointStyle::curved);
         
-        auto color = toggleButton.getToggleState() ? Colours::dimgrey : Colour(0u, 172u, 1u);
+        auto color = toggleButton.getToggleState() ? Colours::dimgrey : color1;
         g.setColour(color);
         g.strokePath(powerButton, pst);
         g.drawEllipse(r, 2);
     }
     else if( auto* analyzerButton = dynamic_cast<AnalyzerButton*>(&toggleButton) )
     {
-        auto color = toggleButton.getToggleState() ? Colour(0u, 172u, 1u) :  Colours::dimgrey;
-        g.setColour(color);
+        
         auto bounds = toggleButton.getLocalBounds();
+        auto color = toggleButton.getToggleState() ? color3 :  Colours::dimgrey;
+        auto bg = toggleButton.getToggleState() ? color1 : color3;
+        g.setColour(bg);
+        g.fillRect(bounds);
+        g.setColour(color);
         g.drawRect(bounds);
         g.strokePath(analyzerButton->randomPath, PathStrokeType(1.f));
         
@@ -139,7 +147,7 @@ void RotarySliderWithLabels::paint(juce::Graphics &g)
     auto center = sliderBounds.toFloat().getCentre();
     auto radius = sliderBounds.getWidth() * 0.5f;
     
-    g.setColour(Colour(0u, 127u, 1u));
+    g.setColour(color1);
     g.setFont(getTextHeight());
     auto numChoices = labels.size();
     for( int i = 0; i < numChoices; ++i)
@@ -406,8 +414,10 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
     {
         auto leftChannelFFTPath = leftPathProducer.getPath();
         leftChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(), responseArea.getY()));
+       
         
         g.setColour(Colours::skyblue);
+        
         g.strokePath(leftChannelFFTPath, PathStrokeType(1.f));
         
         auto rightChannelFFTPath = rightPathProducer.getPath();
@@ -429,10 +439,11 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
 void ResponseCurveComponent::resized()
 {
     using namespace juce;
+    
     background = Image(Image::PixelFormat::RGB, getWidth(), getHeight(), true);
     
     Graphics g(background);
-    
+
     Array<float> freqs
     {
         20, 50, 100,
@@ -469,7 +480,7 @@ void ResponseCurveComponent::resized()
     for( auto gDb : gain )
     {
         auto y = jmap(gDb, -24.f, 24.f, float(bottom), float(top));
-        g.setColour(gDb == 0.f ? Colour(0u, 172u, 1u): Colours::darkgrey);
+        g.setColour(gDb == 0.f ? color4 : Colours::darkgrey);
         g.drawHorizontalLine(y, left, right);
     }
     
@@ -520,7 +531,7 @@ void ResponseCurveComponent::resized()
         r.setX(getWidth() - textWidth);
         r.setCentre(r.getCentreX(), y);
         
-        g.setColour(gDb == 0.f ? Colour(0u, 172u, 1u) : Colours::lightgrey);
+        g.setColour(gDb == 0.f ? color4 : Colours::lightgrey);
         
         g.drawFittedText(str, r, juce::Justification::centred, 1);
         
@@ -532,6 +543,7 @@ void ResponseCurveComponent::resized()
         r.setSize(textWidth, fontHeight);
         g.setColour(Colours::lightgrey);
         g.drawFittedText(str, r, juce::Justification::centred, 1);
+        
     }
     
     
@@ -542,7 +554,7 @@ juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
     auto bounds = getLocalBounds();
     
     bounds.removeFromTop(12);
-    bounds.removeFromBottom(2);
+    bounds.removeFromBottom(5);
     bounds.removeFromLeft(20);
     bounds.removeFromRight(20);
     
@@ -677,9 +689,21 @@ void SimpleEQAudioProcessorEditor::paint (juce::Graphics& g)
 {
     using namespace juce;
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (Colours::black);
+    g.fillAll (color3);
+    g.setColour(color1);
+    g.drawFittedText("Low Cut", lowCutSlopeSlider.getBounds(), juce::Justification::centredBottom, 1);
+    g.drawFittedText("Peak", peakQualitySlider.getBounds(), juce::Justification::centredBottom, 1);
+    g.drawFittedText("High Cut", highCutSlopeSlider.getBounds(), juce::Justification::centredBottom, 1);
     
-    
+    Rectangle<int> credit;
+    credit.setRight(getWidth() - 5);
+    credit.setLeft(getWidth() - 200);
+    credit.setBottom(30);
+    g.setColour(color1);
+    g.setFont(13);
+    g.drawFittedText("Built by Mike Quigley ", credit, juce::Justification::topRight , 1);
+    credit.removeFromTop(15);
+    g.drawFittedText("Based on design by MatKat Music ", credit, juce::Justification::topRight, 1);
 }
 
 void SimpleEQAudioProcessorEditor::resized()
@@ -690,7 +714,7 @@ void SimpleEQAudioProcessorEditor::resized()
     auto bounds = getLocalBounds();
     
     auto analyzerEnabledArea = bounds.removeFromTop(25);
-    analyzerEnabledArea.setWidth(100);
+    analyzerEnabledArea.setWidth(50);
     analyzerEnabledArea.setX(5);
     analyzerEnabledArea.removeFromTop(2);
     
